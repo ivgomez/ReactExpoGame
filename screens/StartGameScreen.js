@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -6,7 +6,10 @@ import {
   Button,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert
+  Alert,
+  Dimensions,
+  ScrollView,
+  KeyboardAvoidingView
 } from "react-native";
 import styled from "styled-components";
 import Card from "../components/Card";
@@ -20,6 +23,9 @@ const StartGameScreen = props => {
   const [enteredValue, setEnteredValue] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState();
+  const [buttonWidth, setButtonWidth] = useState(
+    Dimensions.get("window").width / 4
+  );
 
   const numberInputHandler = inputText => {
     setEnteredValue(inputText.replace(/[^0-9]/g, ""));
@@ -29,6 +35,17 @@ const StartGameScreen = props => {
     setEnteredValue("");
     setConfirmed(false);
   };
+
+  useEffect(() => {
+    const updateLayout = () => {
+      setButtonWidth(Dimensions.get("window").width / 4);
+    };
+
+    Dimensions.addEventListener("change", updateLayout);
+    return () => {
+      Dimensions.removeEventListener("change", updateLayout);
+    };
+  });
 
   const confirmInputHandler = () => {
     const choseNumber = parseInt(enteredValue);
@@ -60,44 +77,48 @@ const StartGameScreen = props => {
   }
 
   return (
-    <TouchableWithoutFeedback
-      onPress={() => {
-        Keyboard.dismiss;
-      }}
-    >
-      <ScreenContainer>
-        <TitleContainer>Start a New Game</TitleContainer>
-        <Card style={styles.inputContainer}>
-          <Text>Select a number!</Text>
-          <Input
-            style={styles.input}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="number-pad"
-            maxLength={2}
-            onChangeText={numberInputHandler}
-            value={enteredValue}
-          />
-          <ButtonContainer>
-            <StyleButton>
-              <Button
-                title="Reset"
-                onPress={resetInputHandler}
-                color={Colors.accent}
+    <ScrollView>
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={30}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss;
+          }}
+        >
+          <ScreenContainer>
+            <TitleContainer>Start a New Game</TitleContainer>
+            <Card style={styles.inputContainer}>
+              <Text>Select a number!</Text>
+              <Input
+                style={styles.input}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="number-pad"
+                maxLength={2}
+                onChangeText={numberInputHandler}
+                value={enteredValue}
               />
-            </StyleButton>
-            <StyleButton>
-              <Button
-                title="Confirm"
-                onPress={confirmInputHandler}
-                color={Colors.primary}
-              />
-            </StyleButton>
-          </ButtonContainer>
-        </Card>
-        {confirmedOutput}
-      </ScreenContainer>
-    </TouchableWithoutFeedback>
+              <ButtonContainer>
+                <View style={{ width: buttonWidth }}>
+                  <Button
+                    title="Reset"
+                    onPress={resetInputHandler}
+                    color={Colors.accent}
+                  />
+                </View>
+                <View style={{ width: buttonWidth }}>
+                  <Button
+                    title="Confirm"
+                    onPress={confirmInputHandler}
+                    color={Colors.primary}
+                  />
+                </View>
+              </ButtonContainer>
+            </Card>
+            {confirmedOutput}
+          </ScreenContainer>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -117,8 +138,9 @@ const TitleContainer = styled(Text)`
 
 const styles = StyleSheet.create({
   inputContainer: {
-    width: 300,
-    maxWidth: "80%",
+    width: "80%",
+    maxWidth: "95%",
+    minWidth: 300,
     alignItems: "center"
   },
   input: {
@@ -143,6 +165,6 @@ const ButtonContainer = styled(View)`
   padding-horizontal: 15px;
 `;
 
-const StyleButton = styled(View)`
-  width: 100;
-`;
+// const StyleButton = styled(View)`
+//   width: ${Dimensions.get("window").width / 4};
+// `;
